@@ -1,0 +1,4 @@
+interface:
+  display_name: "Specsfy · Revisão de Código"
+  short_description: "Revisão por contrato, risco e evidência"
+  default_prompt: "Use $specsfy-specialist-code-review para orientar esta tarefa com padrões e validação especializados."

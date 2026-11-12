@@ -1,0 +1,221 @@
+{
+  "version": 2,
+  "skills": {
+    "clean-architecture": {
+      "source": "wondelai/skills",
+      "sourceType": "github",
+      "skillPath": "clean-architecture/SKILL.md",
+      "computedHash": "16c740b7d76c50c96cd007c76109c9a43ab22af7132bd434b8931c3235e45a97"
+    },
+    "find-skills": {
+      "source": "vercel-labs/skills",
+      "sourceType": "github",
+      "skillPath": "skills/find-skills/SKILL.md",
+      "computedHash": "7bc223e2aafbdbf6e50ea243ba6ef67fe432bb069ab439fea0390795dac0bf7f"
+    },
+    "specsfy-specialist-application-security": {
+      "source": "promovaweb/specsfy",
+      "sourceType": "github",
+      "skillPath": "example/.agents/skills/specsfy-specialist-application-security/SKILL.md",
+      "computedHash": "0d93cce5954d5db1f00ac5de9bb4f3b51479093e4497afd40ccae79efadad906"
+    },
+    "specsfy-specialist-code-review": {
+      "source": "promovaweb/specsfy",
+      "sourceType": "github",
+      "skillPath": "example/.agents/skills/specsfy-specialist-code-review/SKILL.md",
+      "computedHash": "be4f41699f795b49ec23b4565fc654c0ed22495562a1ccaa698638a7b442a76a"
+    },
+    "specsfy-specialist-data-modeling": {
+      "source": "promovaweb/specsfy",
+      "sourceType": "github",
+      "skillPath": "specialists/specsfy-specialist-data-modeling/SKILL.md",
+      "computedHash": "0a7f4a7280a793d666f00c4d5357a907e2c4530d9777510b8d28bc157ad1b811"
+    },
+    "specsfy-specialist-debian-server": {
+      "source": "promovaweb/specsfy",
+      "sourceType": "github",
+      "skillPath": "specialists/specsfy-specialist-debian-server/SKILL.md",
+      "computedHash": "8f2cefef287b4615c82773f47072198539c5168d480d00d4688b33211b87d2ec"
+    },
+    "specsfy-specialist-debugging": {
+      "source": "promovaweb/specsfy",
+      "sourceType": "github",
+      "skillPath": "example/.agents/skills/specsfy-specialist-debugging/SKILL.md",
+      "computedHash": "1635e678dd914e593bd006b235f310597a8a948bd28430156da543bb6774bfc2"
+    },
+    "specsfy-specialist-delivery-engineering": {
+      "source": "promovaweb/specsfy",
+      "sourceType": "github",
+      "skillPath": "example/.agents/skills/specsfy-specialist-delivery-engineering/SKILL.md",
+      "computedHash": "d9b73bb2f072c2aa21b065a6d3d0f6405d39daef0e540ee01c16ea1c610fbebf"
+    },
+    "specsfy-specialist-deploy": {
+      "source": "promovaweb/specsfy",
+      "sourceType": "github",
+      "skillPath": "specialists/specsfy-specialist-deploy/SKILL.md",
+      "computedHash": "d1ce65061f3142eed1648adf289f6a11452849e1b026ca8244e55d3a530a35b8"
+    },
+    "specsfy-specialist-design-system": {
+      "source": "promovaweb/specsfy",
+      "sourceType": "github",
+      "skillPath": "specialists/specsfy-specialist-design-system/SKILL.md",
+      "computedHash": "7c80f0e8783567beeadda0068deb56a65a0a3ca9beff8410c5ab834ca774493b"
+    },
+    "specsfy-specialist-docker": {
+      "source": "promovaweb/specsfy",
+      "sourceType": "github",
+      "skillPath": "specialists/specsfy-specialist-docker/SKILL.md",
+      "computedHash": "edd48310dc78150da13eb4e51e2d039343804efb5b47767be272f9b441ad89fe"
+    },
+    "specsfy-specialist-docker-swarm": {
+      "source": "promovaweb/specsfy",
+      "sourceType": "github",
+      "skillPath": "example/.agents/skills/specsfy-specialist-docker-swarm/SKILL.md",
+      "computedHash": "0bd86f00c4021bf68620625714e1c12f97fac92c11f1baa1592349331d8c39fc"
+    },
+    "specsfy-specialist-domain-modeling": {
+      "source": "promovaweb/specsfy",
+      "sourceType": "github",
+      "skillPath": "example/.agents/skills/specsfy-specialist-domain-modeling/SKILL.md",
+      "computedHash": "5af9faeebc59f5ebf5c4e6ebe8981ad5aa41703e1adc9685e90ab5dc0aaa3d97"
+    },
+    "specsfy-specialist-gitflow": {
+      "source": "promovaweb/specsfy",
+      "sourceType": "github",
+      "skillPath": "specialists/specsfy-specialist-gitflow/SKILL.md",
+      "computedHash": "7f64cfc429594509b91a277ab9836bc14cfcc51007f6791d0724c631a1772fa6"
+    },
+    "specsfy-specialist-interface-experience": {
+      "source": "promovaweb/specsfy",
+      "sourceType": "github",
+      "skillPath": "specialists/specsfy-specialist-interface-experience/SKILL.md",
+      "computedHash": "22c39c7222689bc51baad86593ed435599a5a618d2a7b4a772252fd5a33dbc4e"
+    },
+    "specsfy-specialist-merge-conflict-resolution": {
+      "source": "promovaweb/specsfy",
+      "sourceType": "github",
+      "skillPath": "example/.agents/skills/specsfy-specialist-merge-conflict-resolution/SKILL.md",
+      "computedHash": "c84c2a2446269ae7def0a6fa280ef083f84cbab6ac28a463fc3be024a982b3de"
+    },
+    "specsfy-specialist-nextjs": {
+      "source": "promovaweb/specsfy",
+      "sourceType": "github",
+      "skillPath": "specialists/specsfy-specialist-nextjs/SKILL.md",
+      "computedHash": "f4338ed97d08cd30a5eb9d5de3947cbca26ae3b38607bb48d2bb72726b4f725c"
+    },
+    "specsfy-specialist-observability": {
+      "source": "promovaweb/specsfy",
+      "sourceType": "github",
+      "skillPath": "specialists/specsfy-specialist-observability/SKILL.md",
+      "computedHash": "17663b621b9f38e06a2c2836f951f025cad860dafc0f04fd0c2c8093d5cee4cd"
+    },
+    "specsfy-specialist-performance-engineering": {
+      "source": "promovaweb/specsfy",
+      "sourceType": "github",
+      "skillPath": "example/.agents/skills/specsfy-specialist-performance-engineering/SKILL.md",
+      "computedHash": "50d7f792a267b78a5c7311d856f5b9a80c80e939766ad31adc184f00d83e15e6"
+    },
+    "specsfy-specialist-postgres": {
+      "source": "promovaweb/specsfy",
+      "sourceType": "github",
+      "skillPath": "example/.agents/skills/specsfy-specialist-postgres/SKILL.md",
+      "computedHash": "e74129ed68c399caa6147bd7177c1f51a779b5eec2ff86c82fca034780a7e35d"
+    },
+    "specsfy-specialist-prototyping": {
+      "source": "promovaweb/specsfy",
+      "sourceType": "github",
+      "skillPath": "example/.agents/skills/specsfy-specialist-prototyping/SKILL.md",
+      "computedHash": "6e882c7edbebb3ca3ca2823aff5fc19af095cb8bc31204affdaf64b3b521898d"
+    },
+    "specsfy-specialist-react": {
+      "source": "promovaweb/specsfy",
+      "sourceType": "github",
+      "skillPath": "example/.agents/skills/specsfy-specialist-react/SKILL.md",
+      "computedHash": "ff6e76e389995796e61e8bd5c0fa651e823ae12e1e616b4b73251ad48c4ad34e"
+    },
+    "specsfy-specialist-react-ui-components": {
+      "source": "promovaweb/specsfy",
+      "sourceType": "github",
+      "skillPath": "specialists/specsfy-specialist-react-ui-components/SKILL.md",
+      "computedHash": "9a134795d72db83eb1b4bebf71d746393cff47e90c18ab7dbad8c53ea06d5815"
+    },
+    "specsfy-specialist-reui": {
+      "source": "promovaweb/specsfy",
+      "sourceType": "github",
+      "skillPath": "specialists/specsfy-specialist-reui/SKILL.md",
+      "computedHash": "7dbd7b55a21b1056fed0ed37db67bb5681e9d5a5a7db36b21e1984a690649852"
+    },
+    "specsfy-specialist-server-report": {
+      "source": "promovaweb/specsfy",
+      "sourceType": "github",
+      "skillPath": "specialists/specsfy-specialist-server-report/SKILL.md",
+      "computedHash": "4fcf4d702c17a67a4c71d8ec26571d2880fa66063af64d83492977ef77e35e95"
+    },
+    "specsfy-specialist-shadcn-ui": {
+      "source": "promovaweb/specsfy",
+      "sourceType": "github",
+      "skillPath": "example/.agents/skills/specsfy-specialist-shadcn-ui/SKILL.md",
+      "computedHash": "bbae12edbcdbb7ea079ece20b3ab7813a271c307fcf2a06925b216d20931fb79"
+    },
+    "specsfy-specialist-software-architecture": {
+      "source": "promovaweb/specsfy",
+      "sourceType": "github",
+      "skillPath": "example/.agents/skills/specsfy-specialist-software-architecture/SKILL.md",
+      "computedHash": "7cbcd9dc02d7cb47108a63ada09c612e53c22bf81240197694902cd2a0a0f4af"
+    },
+    "specsfy-specialist-supabase": {
+      "source": "promovaweb/specsfy",
+      "sourceType": "github",
+      "skillPath": "specialists/specsfy-specialist-supabase/SKILL.md",
+      "computedHash": "e5ceee248aabd91bdbcd4843c7353240e82b1e0a909304f99fdc2e6915bc2589"
+    },
+    "specsfy-specialist-tailwind-css": {
+      "source": "promovaweb/specsfy",
+      "sourceType": "github",
+      "skillPath": "example/.agents/skills/specsfy-specialist-tailwind-css/SKILL.md",
+      "computedHash": "e587ad69387a74ae5a9e1b36b9e40662fa8840ca53c4daa66dbf522dd8a0fdbf"
+    },
+    "specsfy-specialist-technical-research": {
+      "source": "promovaweb/specsfy",
+      "sourceType": "github",
+      "skillPath": "example/.agents/skills/specsfy-specialist-technical-research/SKILL.md",
+      "computedHash": "d61b487a0617817e206eb93642768839cbed47708456f0babb6a6f803963e1b1"
+    },
+    "specsfy-specialist-typescript": {
+      "source": "promovaweb/specsfy",
+      "sourceType": "github",
+      "skillPath": "example/.agents/skills/specsfy-specialist-typescript/SKILL.md",
+      "computedHash": "78c98c647292f50d5f8c5d7557c031926b16c6614aee440c46eca65157e999eb"
+    },
+    "specsfy-specialist-ui-design": {
+      "source": "promovaweb/specsfy",
+      "sourceType": "github",
+      "skillPath": "example/.agents/skills/specsfy-specialist-ui-design/SKILL.md",
+      "computedHash": "dccbec05d40516c4b95aa37ae184bd088b3d41ffc23a3dc9fc1d01338992d7d6"
+    },
+    "specsfy-specialist-ux-design": {
+      "source": "promovaweb/specsfy",
+      "sourceType": "github",
+      "skillPath": "example/.agents/skills/specsfy-specialist-ux-design/SKILL.md",
+      "computedHash": "a7004d9b9bcbc48c78d2f0660cbac2597cb60585b2f8718a3ed6aa35eff5d7c8"
+    },
+    "specsfy-specialist-versioning": {
+      "source": "promovaweb/specsfy",
+      "sourceType": "github",
+      "skillPath": "specialists/specsfy-specialist-versioning/SKILL.md",
+      "computedHash": "77ecc29c1ad774165a9f4f85251337989ec4ee59920fed8ae290f77531c2bf0b"
+    },
+    "specsfy-specialist-web-accessibility": {
+      "source": "promovaweb/specsfy",
+      "sourceType": "github",
+      "skillPath": "example/.agents/skills/specsfy-specialist-web-accessibility/SKILL.md",
+      "computedHash": "05ec253c36239b3cbf41f05d9745b1c5986812e5ca2897f9d1e838699db24386"
+    },
+    "specsfy-specialist-web-api-design": {
+      "source": "promovaweb/specsfy",
+      "sourceType": "github",
+      "skillPath": "example/.agents/skills/specsfy-specialist-web-api-design/SKILL.md",
+      "computedHash": "74f1635784a17b6d078edc3d243a81248164d00e004862d26aeaf35a392c78e4"
+    }
+  }
+}
