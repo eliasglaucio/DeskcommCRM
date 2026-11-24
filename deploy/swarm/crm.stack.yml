@@ -1,0 +1,425 @@
+# DeskcommCRM — stack para Docker Swarm (app, worker, scheduler, waha, redis, srh).
+#
+# Equivalente Swarm do docker-compose.prod.yml. Imagens publicadas pelo CI do
+# fork (.github/workflows/publish-image.yml) no GHCR.
+#
+#   set -a; . ./crm.env; set +a
+#   docker stack deploy --with-registry-auth -c crm.stack.yml crm
+#
+# Leia deploy/swarm/README.md antes do primeiro deploy.
+
+version: "3.8"
+
+# ── Variáveis comuns ao app e ao worker ──────────────────────────────────────
+# `${VAR:?msg}` = obrigatória: o deploy falha dizendo qual falta.
+# `${VAR:-}`    = opcional (vazia quando ausente).
+x-env-comum: &env-comum
+  NODE_ENV: production
+
+  # Supabase. A URL pública é a que o NAVEGADOR usa; a de servidor usa a rede
+  # interna (MV8Net) e poupa a saída para a internet.
+  NEXT_PUBLIC_SUPABASE_URL: ${NEXT_PUBLIC_SUPABASE_URL:?defina NEXT_PUBLIC_SUPABASE_URL}
+  NEXT_PUBLIC_SUPABASE_ANON_KEY: ${NEXT_PUBLIC_SUPABASE_ANON_KEY:?defina NEXT_PUBLIC_SUPABASE_ANON_KEY}
+  SUPABASE_SERVICE_ROLE_KEY: ${SUPABASE_SERVICE_ROLE_KEY:?defina SUPABASE_SERVICE_ROLE_KEY}
+  SUPABASE_SERVER_URL: ${SUPABASE_SERVER_URL:-http://supabase_kong:8000}
+  SUPABASE_DB_URL: ${SUPABASE_DB_URL:?defina SUPABASE_DB_URL}
+  # Só o kit de VPS usa; nenhum código do app lê.
+  SUPABASE_DB_ADMIN_URL: ""
+
+  NEXT_PUBLIC_APP_URL: ${NEXT_PUBLIC_APP_URL:?defina NEXT_PUBLIC_APP_URL}
+  NEXT_PUBLIC_ADMIN_URL: ${NEXT_PUBLIC_ADMIN_URL:-${NEXT_PUBLIC_APP_URL}}
+
+  # Segredos (gere com `openssl rand -hex 32`; AI_CRED_AES_KEY com `openssl rand -base64 32`).
+  INTERNAL_SECRET: ${INTERNAL_SECRET:?defina INTERNAL_SECRET}
+  INTERNAL_CRON_SECRET: ${INTERNAL_CRON_SECRET:-}
+  CPF_ENCRYPTION_KEY: ${CPF_ENCRYPTION_KEY:?defina CPF_ENCRYPTION_KEY}
+  AI_CRED_AES_KEY: ${AI_CRED_AES_KEY:?defina AI_CRED_AES_KEY}
+  WAHA_BYO_ENCRYPTION_KEY: ${WAHA_BYO_ENCRYPTION_KEY:?defina WAHA_BYO_ENCRYPTION_KEY}
+  IMPERSONATE_COOKIE_SECRET: ${IMPERSONATE_COOKIE_SECRET:?defina IMPERSONATE_COOKIE_SECRET}
+  LGPD_SIGNING_KEY: ${LGPD_SIGNING_KEY:?defina LGPD_SIGNING_KEY}
+  NUVEMSHOP_OAUTH_ENCRYPTION_KEY: ${NUVEMSHOP_OAUTH_ENCRYPTION_KEY:-}
+
+  # WAHA e Redis: nomes únicos na rede privada da stack (ver `networks`).
+  WAHA_API_BASE_URL: http://crm-waha:3000
+  WAHA_API_KEY: ${WAHA_API_KEY:?defina WAHA_API_KEY}
+  WAHA_HMAC_SECRET: ${WAHA_HMAC_SECRET:?defina WAHA_HMAC_SECRET}
+  WAHA_WEBHOOK_BASE_URL: http://crm-app:3000
+  UPSTASH_REDIS_REST_URL: http://crm-srh:80
+  UPSTASH_REDIS_REST_TOKEN: ${SRH_TOKEN:?defina SRH_TOKEN}
+
+  AGENT_DISPATCH_CONSUMER: engine
+
+  # IA — opcionais: cada organização também pode cadastrar a chave em IA › Credenciais.
+  AI_GATEWAY_API_KEY: ${AI_GATEWAY_API_KEY:-}
+  ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+  OPENROUTER_API_KEY: ${OPENROUTER_API_KEY:-}
+  OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+
+  # E-mail — opcional (sem isso o convite vira link na tela).
+  RESEND_API_KEY: ${RESEND_API_KEY:-}
+  RESEND_FROM_EMAIL: ${RESEND_FROM_EMAIL:-}
+  SMTP_HOST: ${SMTP_HOST:-}
+  SMTP_PORT: ${SMTP_PORT:-587}
+  SMTP_SECURITY: ${SMTP_SECURITY:-starttls}
+  SMTP_USERNAME: ${SMTP_USERNAME:-}
+  SMTP_PASSWORD: ${SMTP_PASSWORD:-}
+  SMTP_FROM_EMAIL: ${SMTP_FROM_EMAIL:-}
+  SMTP_FROM_NAME: ${SMTP_FROM_NAME:-}
+
+  # Marca (semente; a tela Configurações › Marca vence).
+  APP_NAME: ${APP_NAME:-}
+  APP_LOGO_URL: ${APP_LOGO_URL:-}
+  APP_ACCENT_HEX: ${APP_ACCENT_HEX:-}
+  SUPPORT_EMAIL: ${SUPPORT_EMAIL:-}
+
+  # Telemetria: `off` desliga (padrão aqui); `comunidade` aceita o Sentry do projeto.
+  SENTRY_DSN: ${SENTRY_DSN:-off}
+
+  # Chamada de voz (WaCalls) — só com WACALLS_REPLICAS=1 (serviço opcional abaixo).
+  WACALLS_API_BASE_URL: ${WACALLS_API_BASE_URL:-}
+  WACALLS_API_TOKEN: ${WACALLS_API_TOKEN:-}
+
+x-logging: &logging
+  driver: json-file
+  options:
+    max-size: "10m"
+    max-file: "3"
+
+services:
+  # ── APP ────────────────────────────────────────────────────────────────────
+  crm-app:
+    image: ghcr.io/eliasglaucio/deskcommcrm:${CRM_TAG:-latest}
+    environment:
+      <<: *env-comum
+      # O worker drena o event_log; o webhook não precisa fazê-lo na requisição.
+      EVENT_LOG_WORKER_DRAINS: "true"
+    healthcheck:
+      # Probe TCP puro (não usar /api/v1/health: ele dá 503 se WAHA/Redis caem).
+      test: ["CMD", "node", "-e", "require('net').connect(3000,'127.0.0.1').on('connect',()=>process.exit(0)).on('error',()=>process.exit(1))"]
+      interval: 10s
+      timeout: 5s
+      retries: 15
+      start_period: 40s
+    logging: *logging
+    networks:
+      MV8Net: {}          # Traefik e Supabase
+      interna:
+        # O scheduler tem `http://app:3000` fixo no entrypoint.
+        aliases: [app, crm-app]
+    deploy:
+      replicas: 1
+      placement:
+        constraints:
+          - node.role == manager
+      resources:
+        limits:
+          memory: 2G
+      restart_policy:
+        condition: any
+        delay: 5s
+      update_config:
+        order: start-first            # sobe o novo antes de derrubar o antigo
+        parallelism: 1
+        failure_action: rollback
+        monitor: 30s
+      rollback_config:
+        order: start-first
+      labels:
+        - traefik.enable=true
+        - traefik.docker.network=MV8Net     # o app está em 2 redes: sem isto o Traefik pode escolher a errada
+        - traefik.http.routers.crm_app.rule=Host(`${CRM_DOMAIN:-crm.cppem.com.br}`)
+        - traefik.http.routers.crm_app.entrypoints=websecure
+        - traefik.http.routers.crm_app.tls=true
+        - traefik.http.routers.crm_app.tls.certresolver=letsencryptresolver
+        - traefik.http.routers.crm_app.service=crm_app
+        - traefik.http.services.crm_app.loadbalancer.server.port=3000
+
+  # ── WORKER (agente de IA, fila, follow-ups, watchdog do WAHA) ──────────────
+  crm-worker:
+    image: ghcr.io/eliasglaucio/deskcomm-worker:${CRM_TAG:-latest}
+    environment:
+      <<: *env-comum
+      SHUTDOWN_GRACE_MS: "30000"
+    # Maior que SHUTDOWN_GRACE_MS: o worker fecha o job em voo antes do SIGKILL.
+    stop_grace_period: 40s
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://127.0.0.1:8787/healthz"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+    logging: *logging
+    networks:
+      - MV8Net            # alcança o Postgres do Supabase (supabase_db:5432)
+      - interna
+    deploy:
+      replicas: 1                      # NUNCA mais de 1 sem revisar a fila: ver README
+      placement:
+        constraints:
+          - node.role == manager
+      resources:
+        limits:
+          memory: 512M
+      restart_policy:
+        condition: any
+        delay: 5s
+      update_config:
+        order: stop-first              # nunca dois workers ao mesmo tempo
+        failure_action: rollback
+
+  # ── SCHEDULER (crond batendo nas rotas /api/v1/cron/*) ─────────────────────
+  crm-scheduler:
+    image: ghcr.io/eliasglaucio/deskcomm-scheduler:${CRM_TAG:-latest}
+    environment:
+      TZ: ${TZ:-UTC}
+      INTERNAL_SECRET: ${INTERNAL_SECRET:?defina INTERNAL_SECRET}
+    logging: *logging
+    networks:
+      - interna           # só fala com `app:3000`
+    deploy:
+      replicas: 1
+      placement:
+        constraints:
+          - node.role == manager
+      resources:
+        limits:
+          memory: 128M
+      restart_policy:
+        condition: any
+        delay: 5s
+
+  # ── WAHA (WhatsApp) ────────────────────────────────────────────────────────
+  crm-waha:
+    image: devlikeapro/waha:latest-2026.7.2
+    environment:
+      # `sha512:` faz o WAHA comparar o hash do X-Api-Key recebido com este valor.
+      WAHA_API_KEY: "sha512:${WAHA_API_KEY_SHA512:?defina WAHA_API_KEY_SHA512}"
+      WHATSAPP_HOOK_URL: http://crm-app:3000/api/v1/webhooks/waha
+      WHATSAPP_HOOK_EVENTS: "message.any,message.ack,message.edited,message.revoked,message.reaction,session.status,state.change,call.received"
+      WHATSAPP_HOOK_HMAC_KEY: ${WAHA_HMAC_SECRET:?defina WAHA_HMAC_SECRET}
+      WHATSAPP_DEFAULT_ENGINE: NOWEB
+      WAHA_DASHBOARD_ENABLED: "false"
+      WHATSAPP_RESTART_ALL_SESSIONS: "True"
+    volumes:
+      - waha_data:/app/.sessions       # sessões pareadas: perder = re-parear o QR
+      - waha_media:/app/.media
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://127.0.0.1:3000/ping"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+    logging: *logging
+    networks:
+      - interna
+    deploy:
+      replicas: 1
+      placement:
+        constraints:
+          - node.role == manager
+      resources:
+        limits:
+          memory: 1280M
+      restart_policy:
+        condition: any
+        delay: 5s
+      update_config:
+        order: stop-first              # um volume de sessão, um dono
+
+  # ── REDIS (efêmero: rate limit e debounce) ─────────────────────────────────
+  crm-redis:
+    image: redis:7-alpine
+    command: ["redis-server", "--save", "", "--appendonly", "no"]
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+    logging: *logging
+    networks:
+      - interna
+    deploy:
+      replicas: 1
+      placement:
+        constraints:
+          - node.role == manager
+      resources:
+        limits:
+          memory: 256M
+      restart_policy:
+        condition: any
+        delay: 5s
+
+  # ── SRH (API REST da Upstash sobre o Redis) ────────────────────────────────
+  crm-srh:
+    # Pinado por digest, como no compose de produção.
+    image: hiett/serverless-redis-http@sha256:5b0bb9239fce53abf87b2018a7a0deb9ec7bd900c5360738fe5fbeeb426f9150
+    environment:
+      SRH_MODE: env
+      SRH_TOKEN: ${SRH_TOKEN:?defina SRH_TOKEN}
+      SRH_CONNECTION_STRING: "redis://crm-redis:6379"
+    logging: *logging
+    networks:
+      - interna
+    deploy:
+      replicas: 1
+      placement:
+        constraints:
+          - node.role == manager
+      resources:
+        limits:
+          memory: 256M
+      restart_policy:
+        condition: any
+        delay: 5s
+
+  # ═══════════════════════════════════════════════════════════════════════════
+  # OPCIONAIS — nascem DESLIGADOS (replicas 0), como os `profiles` do compose.
+  # Para ligar, ponha a variável a 1 no crm.env e rode o deploy de novo.
+  # Nenhum deles é dependência do app nem do worker.
+  # ═══════════════════════════════════════════════════════════════════════════
+
+  # ── WACALLS (chamada de voz do WhatsApp) — WACALLS_REPLICAS=1 ──────────────
+  # Vincula um SEGUNDO APARELHO ao número: risco de bloqueio da CONTA pelo
+  # WhatsApp. Exige também, no crm.env: WACALLS_ADMIN_USER, WACALLS_ADMIN_PASSWORD,
+  # WACALLS_API_TOKEN, WACALLS_PUBLIC_IP e WACALLS_API_BASE_URL=http://wacalls:8080
+  crm-wacalls:
+    # Peça de terceiro (fork mantido pela DeskLabs), pinada por digest.
+    image: ghcr.io/desklabs-opensource/wacalls@sha256:03f9e47fadc1afa909f512bbdda0fa4091d4646310f9a76ce3c752f05eafd1ff
+    environment:
+      WACALLS_ADMIN_USER: ${WACALLS_ADMIN_USER:-}
+      WACALLS_ADMIN_PASSWORD: ${WACALLS_ADMIN_PASSWORD:-}
+      WACALLS_API_TOKEN: ${WACALLS_API_TOKEN:-}
+      WACALLS_CORS_ORIGINS: ""
+      WACALLS_TRUSTED_PROXIES: ""
+      WACALLS_PUBLIC_IP: ${WACALLS_PUBLIC_IP:-}
+      WACALLS_WEBRTC_UDP_PORT: "7881"
+    ports:
+      # Só UDP e em modo `host`: o áudio do WebRTC precisa chegar com o IP de
+      # origem intacto (o roteamento `ingress` o reescreve). Host == contêiner.
+      - target: 7881
+        published: 7881
+        protocol: udp
+        mode: host
+    volumes:
+      - wacalls_data:/data              # credencial de sessão: apagar desvincula os aparelhos
+    logging: *logging
+    networks:
+      interna:
+        aliases: [wacalls]
+    deploy:
+      replicas: ${WACALLS_REPLICAS:-0}
+      placement:
+        constraints:
+          - node.role == manager
+      resources:
+        limits:
+          memory: 256M
+      restart_policy:
+        condition: any
+        delay: 5s
+      update_config:
+        order: stop-first               # porta UDP em modo host: um dono por vez
+
+  # ── ASTERISK (telefonia por SIP) — ASTERISK_REPLICAS=1 ─────────────────────
+  # ⚠️ NÃO TESTADO NO SWARM. O compose de produção publica 5060/udp e 10000-10200/udp
+  # direto no host; no Swarm uma faixa de portas só publica pelo roteamento
+  # `ingress`, que reescreve o IP de origem e costuma quebrar RTP/SIP atrás de NAT.
+  # Valide com uma ligação de verdade antes de depender disto, ou rode o Asterisk
+  # fora do Swarm (compose) e aponte o ARI para ele.
+  #
+  # Pré-requisito: copie a pasta `asterisk/` do repositório para o host
+  # (ASTERISK_CONF_DIR) e crie `pjsip.conf` e `ari.conf` a partir dos `.example`,
+  # com as credenciais do tronco e do ARI.
+  crm-asterisk:
+    image: andrius/asterisk@sha256:927d4c98777149c3380c4f8d0e82b1b1ba9e7b38528f86c1e1593d5a25032f27
+    ports:
+      - "5060:5060/udp"
+      - "10000-10200:10000-10200/udp"
+    volumes:
+      - ${ASTERISK_CONF_DIR:-/opt/crm/asterisk}/pjsip.conf:/etc/asterisk/pjsip.conf:ro
+      - ${ASTERISK_CONF_DIR:-/opt/crm/asterisk}/extensions.conf:/etc/asterisk/extensions.conf:ro
+      - ${ASTERISK_CONF_DIR:-/opt/crm/asterisk}/ari.conf:/etc/asterisk/ari.conf:ro
+      - ${ASTERISK_CONF_DIR:-/opt/crm/asterisk}/http.conf:/etc/asterisk/http.conf:ro
+      - ${ASTERISK_CONF_DIR:-/opt/crm/asterisk}/rtp.conf:/etc/asterisk/rtp.conf:ro
+      - asterisk_data:/var/lib/asterisk
+      - asterisk_logs:/var/log/asterisk
+    healthcheck:
+      test: ["CMD", "asterisk", "-rx", "core show uptime"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+    logging: *logging
+    networks:
+      interna:
+        aliases: [asterisk]            # o voice-agent chama `asterisk:8088` (ARI)
+    deploy:
+      replicas: ${ASTERISK_REPLICAS:-0}
+      placement:
+        constraints:
+          - node.role == manager
+      resources:
+        limits:
+          memory: 256M
+      restart_policy:
+        condition: any
+        delay: 5s
+      update_config:
+        order: stop-first
+
+  # ── VOICE AGENT (IA de voz em tempo real) — VOICE_AGENT_REPLICAS=1 ─────────
+  crm-voice-agent:
+    image: ghcr.io/eliasglaucio/deskcomm-voice-agent:${CRM_TAG:-latest}
+    environment:
+      <<: *env-comum
+      ARI_URL: http://asterisk:8088
+      ARI_WS_URL: ws://asterisk:8088/ari/events
+      ARI_APP: voice-agent
+      ARI_USERNAME: ${ARI_USERNAME:-}
+      ARI_PASSWORD: ${ARI_PASSWORD:-}
+    logging: *logging
+    networks:
+      interna:
+        # asterisk/extensions.conf tem `AudioSocket(...,voice-agent:9092)` fixo.
+        aliases: [voice-agent]
+    deploy:
+      replicas: ${VOICE_AGENT_REPLICAS:-0}
+      placement:
+        constraints:
+          - node.role == manager
+      resources:
+        limits:
+          memory: 512M
+      restart_policy:
+        condition: any
+        delay: 5s
+      update_config:
+        order: stop-first
+
+volumes:
+  waha_data:
+    external: true
+    name: waha_data
+  waha_media:
+    external: true
+    name: waha_media
+  # Só usados pelos opcionais; criar mesmo desligados evita erro no deploy.
+  wacalls_data:
+    external: true
+    name: wacalls_data
+  asterisk_data:
+    external: true
+    name: asterisk_data
+  asterisk_logs:
+    external: true
+    name: asterisk_logs
+
+networks:
+  # Compartilhada com o Supabase e o Traefik. Só app e worker entram nela, com
+  # nomes únicos (crm-*), para não disputar `app`/`redis`/`waha` com outra stack.
+  MV8Net:
+    external: true
+    name: MV8Net
+  # Rede privada desta stack: aqui redis, srh, waha e scheduler vivem isolados.
+  interna:
+    driver: overlay
